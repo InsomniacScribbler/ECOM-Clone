@@ -1,12 +1,15 @@
 package com.nikhilzzz.ecommerce.SB_Ecom.model;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
 @Entity(name = "Categories")
 public class Category {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private long categoryId;
     private String categoryName;
 
