@@ -1,6 +1,12 @@
 package com.nikhilzzz.ecommerce.SB_Ecom.model;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+
+@Entity(name = "Categories")
 public class Category {
+
+    @Id
     private long categoryId;
     private String categoryName;
 
@@ -8,6 +14,8 @@ public class Category {
         this.categoryId = categoryId;
         this.categoryName = categoryName;
     }
+
+    public Category() {}
 
     public long getCategoryId() {
         return categoryId;
