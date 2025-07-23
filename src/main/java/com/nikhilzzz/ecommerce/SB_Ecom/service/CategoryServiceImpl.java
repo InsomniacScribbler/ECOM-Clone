@@ -18,7 +18,7 @@ public class CategoryServiceImpl implements CategoryService {
     private CategoryRepo categoryRepo;
 
     private List<Category> categories = categoryRepo.findAll();
-    private long nextId = 1L;
+    //private long nextId = 1L;
 
 
 
@@ -30,7 +30,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public String createCategory(Category category) {
-        category.setCategoryId(nextId++);
+        //category.setCategoryId(nextId++);
         categoryRepo.save(category);
         return "Category created";
 
@@ -44,7 +44,13 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public String deleteCategory(long categoryId) {
-        categories.removeIf(category -> category.getCategoryId() == categoryId);
+        //categoryRepo.deleteById(categoryId); RISKY as no output if ID not present
+
+        if(!categoryRepo.existsById(categoryId)){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Category ID not found");
+        }
+        categoryRepo.deleteById(categoryId);
+
 
         /*
         * can also be written using streams
