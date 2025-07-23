@@ -17,20 +17,21 @@ public class CategoryServiceImpl implements CategoryService {
     @Autowired
     private CategoryRepo categoryRepo;
 
-    private List<Category> categories = new ArrayList<>();
+    private List<Category> categories = categoryRepo.findAll();
     private long nextId = 1L;
 
 
 
     @Override
     public List<Category> getAllCategories() {
+
         return categories;
     }
 
     @Override
     public String createCategory(Category category) {
         category.setCategoryId(nextId++);
-        categories.add(category);
+        categoryRepo.save(category);
         return "Category created";
 
         /*
@@ -63,12 +64,17 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public String updateCategory(long categoryId,Category updatedCategory) {
-        return categories.stream()
-                .filter(c -> c.getCategoryId() == categoryId)
-                .findFirst()
-                .map(categoryToUpdate ->{ categoryToUpdate.setCategoryName(updatedCategory.getCategoryName());
+        return categoryRepo
+                .findById(categoryId)
+                .map(categoryToUpdate ->{
+                                                    categoryToUpdate.setCategoryName(
+                                                            updatedCategory.getCategoryName()
+                                                    );
+
+                                                    categoryRepo.save(categoryToUpdate);
                                                     return "Category Updated Successfully!!!";
                 })
+
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,"Invalid Id!!!"));
     }
 }
