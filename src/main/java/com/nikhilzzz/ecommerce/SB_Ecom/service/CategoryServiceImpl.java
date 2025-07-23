@@ -1,6 +1,8 @@
 package com.nikhilzzz.ecommerce.SB_Ecom.service;
 
+import com.nikhilzzz.ecommerce.SB_Ecom.Repository.CategoryRepo;
 import com.nikhilzzz.ecommerce.SB_Ecom.model.Category;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -12,9 +14,14 @@ import java.util.List;
 @Service
 public class CategoryServiceImpl implements CategoryService {
 
+    @Autowired
+    private CategoryRepo categoryRepo;
 
     private List<Category> categories = new ArrayList<>();
     private long nextId = 1L;
+
+
+
     @Override
     public List<Category> getAllCategories() {
         return categories;
