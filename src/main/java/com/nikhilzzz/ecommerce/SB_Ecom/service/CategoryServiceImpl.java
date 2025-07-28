@@ -1,15 +1,13 @@
 package com.nikhilzzz.ecommerce.SB_Ecom.service;
 
 import com.nikhilzzz.ecommerce.SB_Ecom.Repository.CategoryRepo;
+import com.nikhilzzz.ecommerce.SB_Ecom.exception.APIException;
 import com.nikhilzzz.ecommerce.SB_Ecom.exception.MyGlobalExceptionHandler;
 import com.nikhilzzz.ecommerce.SB_Ecom.exception.ResourceNotFoundException;
 import com.nikhilzzz.ecommerce.SB_Ecom.model.Category;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,6 +65,10 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public String createCategory(Category category) {
         //category.setCategoryId(nextId++);
+        String savedCategoryName= categoryRepo.getByCategoryName(category.getCategoryName());
+        if (savedCategoryName != null){
+            throw new APIException("Category with name "+category.getCategoryName()+" already exists");
+        }
         categoryRepo.save(category);
         return "Category created";
 
