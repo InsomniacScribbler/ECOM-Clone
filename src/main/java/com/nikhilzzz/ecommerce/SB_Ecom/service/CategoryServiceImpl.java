@@ -32,7 +32,9 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public List<Category> getAllCategories() {
-
+        if(categories.isEmpty()) {
+            throw new APIException("Category List is Empty");
+        }
         return categories;
     }
 
