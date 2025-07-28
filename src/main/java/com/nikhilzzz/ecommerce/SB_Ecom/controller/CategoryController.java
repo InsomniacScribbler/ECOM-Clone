@@ -37,12 +37,15 @@ public class CategoryController {
 
     @DeleteMapping("api/admin/deletecategories/{categoryId}")
     public ResponseEntity<String> deleteCategory(@PathVariable("categoryId") long categoryId) {
-        try {
-            String status = categoryService.deleteCategory(categoryId);
-            return ResponseEntity.ok(status);
-        } catch (ResponseStatusException e) {
-            return new ResponseEntity<>(e.getReason(),e.getStatusCode());
-        }
+
+        String status =categoryService.deleteCategory(categoryId);
+        return ResponseEntity.ok(status);
+//        try {
+//            String status = categoryService.deleteCategory(categoryId);
+//            return ResponseEntity.ok(status);
+//        } catch (ResponseStatusException e) {
+//            return new ResponseEntity<>(e.getReason(),e.getStatusCode());
+//        } ----REMOVING TRY CATCH CUZ WE HAVE OUR OWN HANDLER HANDLING IT----
     }
 
     @PutMapping("api/admin/updatecategories/{categoryId}")

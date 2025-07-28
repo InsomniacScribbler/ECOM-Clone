@@ -1,10 +1,14 @@
 package com.nikhilzzz.ecommerce.SB_Ecom.service;
 
 import com.nikhilzzz.ecommerce.SB_Ecom.Repository.CategoryRepo;
+import com.nikhilzzz.ecommerce.SB_Ecom.exception.MyGlobalExceptionHandler;
+import com.nikhilzzz.ecommerce.SB_Ecom.exception.ResourceNotFoundException;
 import com.nikhilzzz.ecommerce.SB_Ecom.model.Category;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
@@ -16,16 +20,48 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Autowired
     private CategoryRepo categoryRepo;
+    @Autowired
+    private MyGlobalExceptionHandler myGlobalExceptionHandler;
 
-    private List<Category> categories = categoryRepo.findAll();
+    private List<Category> categories;//This will cause NPE as the Repo is being called before instantiation = categoryRepo.findAll();
     //private long nextId = 1L;
 
+    @PostConstruct
+    public void init() {
+        categories = new ArrayList<>();
+    }
 
 
     @Override
     public List<Category> getAllCategories() {
 
         return categories;
+    }
+
+    @Override
+    public String deleteCategory(long categoryId) {
+        //categoryRepo.deleteById(categoryId); RISKY as no output if ID not present
+
+        if(!categoryRepo.existsById(categoryId)){
+            throw new ResourceNotFoundException("Category","CategoryId",categoryId);
+        }
+        categoryRepo.deleteById(categoryId);
+
+
+        /*
+         * can also be written using streams
+         *
+         * Optional<Category> categoryToDelete = categories.stream().filter(c -> c.getCategoryId().equals(categoryId)).findFirst();
+         * categoryToDelete.ifPresent(Categories::remove)
+         *                       ----OR----
+         * Category categoryToDelete  = categories.stream().filter(c -> c.getCategoryId().equals(categoryId)).findFirst()
+         * .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found"));
+         * categories.remove(categoryToDelete)
+         *
+         *
+         * */
+
+        return categoryId+" Deleted successfully!!";
     }
 
     @Override
@@ -43,32 +79,6 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public String deleteCategory(long categoryId) {
-        //categoryRepo.deleteById(categoryId); RISKY as no output if ID not present
-
-        if(!categoryRepo.existsById(categoryId)){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Category ID not found");
-        }
-        categoryRepo.deleteById(categoryId);
-
-
-        /*
-        * can also be written using streams
-        *
-        * Optional<Category> categoryToDelete = categories.stream().filter(c -> c.getCategoryId().equals(categoryId)).findFirst();
-        * categoryToDelete.ifPresent(Categories::remove)
-        *                       ----OR----
-        * Category categoryToDelete  = categories.stream().filter(c -> c.getCategoryId().equals(categoryId)).findFirst()
-         * .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found"));
-         * categories.remove(categoryToDelete)
-        *
-        *
-        * */
-
-        return categoryId+" Deleted successfully!!";
-    }
-
-    @Override
     public String updateCategory(long categoryId,Category updatedCategory) {
         return categoryRepo
                 .findById(categoryId)
@@ -81,6 +91,6 @@ public class CategoryServiceImpl implements CategoryService {
                                                     return "Category Updated Successfully!!!";
                 })
 
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,"Invalid Id!!!"));
+                .orElseThrow(() -> new ResourceNotFoundException("Category","CategoryId",categoryId));
     }
 }
