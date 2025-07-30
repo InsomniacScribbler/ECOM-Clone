@@ -5,6 +5,7 @@ import com.nikhilzzz.ecommerce.SB_Ecom.model.Category;
 import com.nikhilzzz.ecommerce.SB_Ecom.service.CategoryService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -21,18 +22,16 @@ public class CategoryController {
 
     //@GetMapping("api/public/getcategories")
     @RequestMapping(value = "api/public/getcategories", method = RequestMethod.GET)
-    public List<Category> getCategories() {
-        return categoryService.getAllCategories();
+    public ResponseEntity<List<Category>> getCategories() {
+        return new ResponseEntity<>(categoryService.getAllCategories(), HttpStatus.OK);
     }
 
     @PostMapping("api/admin/createcategories")
     public ResponseEntity<String> createCategory(@Valid @RequestBody Category category) {
-        try {
+
             String status =categoryService.createCategory(category);
             return ResponseEntity.ok(status);
-        } catch (ResponseStatusException e) {
-            return ResponseEntity.status(e.getStatusCode()).body(e.getReason());
-        }
+
         }
 
     @DeleteMapping("api/admin/deletecategories/{categoryId}")
