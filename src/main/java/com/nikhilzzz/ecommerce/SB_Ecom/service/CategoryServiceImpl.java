@@ -1,17 +1,17 @@
 package com.nikhilzzz.ecommerce.SB_Ecom.service;
 
+import com.nikhilzzz.ecommerce.SB_Ecom.Payload.CategoryDto;
+import com.nikhilzzz.ecommerce.SB_Ecom.Payload.CategoryResponse;
 import com.nikhilzzz.ecommerce.SB_Ecom.Repository.CategoryRepo;
 import com.nikhilzzz.ecommerce.SB_Ecom.exception.APIException;
 import com.nikhilzzz.ecommerce.SB_Ecom.exception.MyGlobalExceptionHandler;
 import com.nikhilzzz.ecommerce.SB_Ecom.exception.ResourceNotFoundException;
 import com.nikhilzzz.ecommerce.SB_Ecom.model.Category;
-import jakarta.annotation.PostConstruct;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
-
 
 @Service
 public class CategoryServiceImpl implements CategoryService {
@@ -21,21 +21,25 @@ public class CategoryServiceImpl implements CategoryService {
     @Autowired
     private MyGlobalExceptionHandler myGlobalExceptionHandler;
 
-    private List<Category> categories;//This will cause NPE as the Repo is being called before instantiation = categoryRepo.findAll();
+    @Autowired
+    private ModelMapper modelMapper;
+
+    private CategoryResponse categories;//This will cause NPE as the Repo is being called before instantiation = categoryRepo.findAll();
     //private long nextId = 1L;
 
-    @PostConstruct
-    public void init() {
-        categories = new ArrayList<>();
-    }
+
 
 
     @Override
-    public List<Category> getAllCategories() {
+    public CategoryResponse getAllCategories() {
+        List<Category> categories = categoryRepo.findAll();
         if(categories.isEmpty()) {
             throw new APIException("Category List is Empty");
         }
-        return categories;
+        List<CategoryDto> categoryDtos = categories.stream().map(c -> modelMapper.map(c, CategoryDto.class)).toList();
+        CategoryResponse categoryResponse = new CategoryResponse();
+        categoryResponse.setContent(categoryDtos);
+        return categoryResponse;
     }
 
     @Override
@@ -65,14 +69,15 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public String createCategory(Category category) {
+    public String createCategory(CategoryDto category) {
         //category.setCategoryId(nextId++);
-        String savedCategoryName= categoryRepo.getByCategoryName(category.getCategoryName());
-        if (savedCategoryName != null){
-            throw new APIException("Category with name "+category.getCategoryName()+" already exists");
-        }
-        categoryRepo.save(category);
-        return "Category created";
+        Category existingCategory = categoryRepo.getByCategoryName(category.getCategoryName()); //getting the name of the category and checking if it exists already
+        if(existingCategory!=null){ throw new APIException("Category Already Exists");}
+
+        Category newCategory = modelMapper.map(category,Category.class); // mapping the Dto object to category object so as to write in the category entiry table
+
+        categoryRepo.save(newCategory); //saving
+        return "Category Created successfully!!"; //returning
 
         /*
         *
@@ -83,18 +88,20 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public String updateCategory(long categoryId,Category updatedCategory) {
-        return categoryRepo
-                .findById(categoryId)
-                .map(categoryToUpdate ->{
-                                                    categoryToUpdate.setCategoryName(
-                                                            updatedCategory.getCategoryName()
-                                                    );
-
-                                                    categoryRepo.save(categoryToUpdate);
-                                                    return "Category Updated Successfully!!!";
-                })
-
-                .orElseThrow(() -> new ResourceNotFoundException("Category","CategoryId",categoryId));
+    public String updateCategory(long categoryId,CategoryDto updatedCategory) throws APIException {
+        String existingCategoryName =categoryRepo.findById(categoryId).orElseThrow(() -> new APIException("Id Invalid!!!")).getCategoryName();
+//        if(existingCategoryName.equals(updatedCategory.getCategoryName()) && !categoryRepo.existsById(categoryId)){
+//            throw new APIException("Category with the name Already Exists");
+//        }
+        // Check if another category with the same name exists
+        Category duplicateCategory = categoryRepo.getByCategoryName(updatedCategory.getCategoryName());
+        if (duplicateCategory != null && duplicateCategory.getCategoryId() != categoryId) {
+            throw new APIException("Category with the name '" + updatedCategory.getCategoryName() + "' already exists");
+        }
+        Category categorytoUpdate = categoryRepo.getById(categoryId);
+        categorytoUpdate.setCategoryName(updatedCategory.getCategoryName());
+        categoryRepo.save(categorytoUpdate);
+        return "Category Updated successfully!!";
     }
 }
+
